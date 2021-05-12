@@ -1,5 +1,49 @@
 version: "3.7"
 services:
+  app:
+    build: app
+    restart: always
+    volumes:
+      - ./app/src:/code
+    secrets:
+      - db-password
+    networks:
+      - public
+      - private
+    depends_on:
+      - db
+    ports:
+      - 5000:5000
+
+  backend:
+    build:
+      args:
+        - NODE_ENV=development
+      context: backend
+    command: npm run start-watch
+    environment:
+      - DATABASE_DB=example
+      - DATABASE_USER=root
+      - DATABASE_PASSWORD=/run/secrets/db-password
+      - DATABASE_HOST=db
+      - NODE_ENV=development
+    ports:
+      - 80:80
+      - 9229:9229
+      - 9230:9230
+    secrets:
+      - db-password
+    volumes:
+      - ./backend/src:/code/src:ro
+      - ./backend/package.json:/code/package.json
+      - ./backend/package-lock.json:/code/package-lock.json
+      - back-notused:/opt/app/node_modules
+    networks:
+      - public
+      - private
+    depends_on:
+      - db
+
   db:
     image: mysql:8.0.19
     command: "--default-authentication-plugin=mysql_native_password"
@@ -9,32 +53,32 @@ services:
     volumes:
       - db-data:/var/lib/mysql
     networks:
-      - backend-network
+      - private
     environment:
       - MYSQL_DATABASE=example
       - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/db-password
 
-  app:
-    build: app
-    restart: always
-    secrets:
-      - db-password
-    networks:
-      - backend-network
-      - frontend-network
-
-  web:
-    build: web
-    restart: always
+  frontend:
+    build:
+      context: frontend
+      target: development
     ports:
-      - 80:80
+      - 3000:3000
+    volumes:
+      - ./frontend/src:/code/src
+      - /code/node_modules
     networks:
-      - frontend-network
+      - public
+    depends_on:
+      - app
+      - backend
+
+networks:
+  public:
+  private:
 volumes:
+  back-notused:
   db-data:
 secrets:
   db-password:
     file: db/password.txt
-networks:
-  backend-network:
-  frontend-network:

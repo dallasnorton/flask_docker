@@ -5,7 +5,7 @@ import mysql.connector
 
 # for debugging from Visual Studio Code -- turn off flask debugger first
 # import ptvsd
-# ptvsd.enable_attach(address=('0.0.0.0', 3000))
+# ptvsd.enable_attach(address=("0.0.0.0", 3000))
 
 
 class DBManager:
@@ -56,13 +56,16 @@ def listBlog():
     for c in rec:
         result.append(c)
 
+    print("sup")
     return flask.jsonify({"response": result})
 
 
 @server.route("/")
 def hello():
+    print("hello")
     return flask.jsonify({"response": "Hello from Docker!"})
 
 
 if __name__ == "__main__":
+    print("hopefully works")
     server.run(debug=True, host="0.0.0.0", port=5000)
