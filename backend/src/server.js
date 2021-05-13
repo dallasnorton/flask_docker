@@ -20,6 +20,7 @@ const app = express();
 app.use(morgan("common"));
 
 app.get("/", function (req, res, next) {
+  console.log("root happening?");
   database
     .raw("select VERSION() version")
     .then(([rows, columns]) => rows[0])
